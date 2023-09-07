@@ -5,14 +5,12 @@ import * as sinon from 'sinon';
 
 import type { ManagedIdentity } from '../src/identity-manager.js';
 
-import { testDwnUrl } from './test-config.js';
+import { testDwnUrls } from './test-config.js';
 import { TestAgent } from './utils/test-agent.js';
 import { SyncManagerLevel } from '../src/sync-manager.js';
 import { TestManagedAgent } from '../src/test-managed-agent.js';
 
-import { RecordsQueryReply, RecordsWriteMessage } from '@tbd54566975/dwn-sdk-js';
-
-let testDwnUrls: string[] = [testDwnUrl];
+import { GenericMessage, RecordsQueryMessage, RecordsQueryReply, RecordsReadReply, RecordsWriteMessage } from '@tbd54566975/dwn-sdk-js';
 
 describe('SyncManagerLevel', () => {
   describe('get agent', () => {
@@ -343,6 +341,52 @@ describe('SyncManagerLevel', () => {
         expect(remoteDwnQueryReply.status.code).to.equal(200); // Query was successfully executed.
         expect(remoteDwnQueryReply.entries).to.have.length(1); // Record does exist on remote DWN.
       }).timeout(5000);
+
+      it('synchronize local node from a remote node using pull', async () => {
+        // Write a record that we can use for this test.
+        const writeRecord1 = await testAgent.agent.dwnManager.sendRequest({
+          author         : alice.did,
+          target         : alice.did,
+          messageType    : 'RecordsWrite',
+          messageOptions : {
+            dataFormat: 'text/plain'
+          },
+          dataStream: new Blob(['Hello, world!'])
+        });
+
+        const writeRecord1Id = (writeRecord1.message as RecordsWriteMessage).recordId;
+
+        const recordsRead1 = await testAgent.agent.dwnManager.sendRequest({
+          author: alice.did,
+          target: alice.did,
+          messageType: 'RecordsRead',
+          messageOptions: { recordId: writeRecord1Id }
+        });
+        const recordsReadReply = recordsRead1.reply as RecordsReadReply
+        expect(recordsReadReply.status.code).to.equal(200);
+        expect(recordsReadReply.record!.recordId).to.equal(writeRecord1Id);
+
+        await testAgent.agent.syncManager.registerIdentity({
+          did: alice.did
+        });
+
+        let localRead = await testAgent.agent.dwnManager.processMessage({
+          targetDid : alice.did,
+          message   : recordsRead1.message as GenericMessage,
+        })
+        expect(localRead.status.code).to.equal(404);
+
+        // await testAgent.agent.syncManager.push();
+        await testAgent.agent.syncManager.pull();
+
+        localRead = await testAgent.agent.dwnManager.processMessage({
+          targetDid : alice.did,
+          message   : recordsRead1.message as GenericMessage,
+        })
+        expect(localRead.status.code).to.equal(200);
+        const localReadReply = localRead as RecordsReadReply;
+        expect(localReadReply.record!.recordId).to.equal(writeRecord1Id);
+      });
     });
   });
 });
