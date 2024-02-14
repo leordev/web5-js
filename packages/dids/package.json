@@ -1,5 +1,5 @@
 {
-  "name": "@web5/dids",
+  "name": "@leordev-web5/dids",
   "version": "0.4.0",
   "description": "TBD DIDs library",
   "type": "module",
@@ -77,8 +77,8 @@
   "dependencies": {
     "@decentralized-identity/ion-sdk": "1.0.1",
     "@dnsquery/dns-packet": "6.1.1",
-    "@web5/common": "0.2.3",
-    "@web5/crypto": "0.4.0",
+    "@web5/common": "npm:@leordev-web5/common0.2.3",
+    "@web5/crypto": "npm:@leordev-web5/crypto0.4.0",
     "bencode": "4.0.0",
     "level": "8.0.0",
     "ms": "2.1.3"
