@@ -27,13 +27,6 @@ jobs:
       published: ${{ steps.changesets.outputs.published }}
 
     steps:
-      - name: debug stuff
-        run: |
-          echo "GITHUB_REF: ${{ github.ref }}"
-          echo "GITHUB_HEAD_REF: ${{ github.head_ref }}"
-          echo "GITHUB_BASE_REF: ${{ github.base_ref }}"
-          echo "GITHUB_EVENT_ACTION: ${{ github.event.action }}"
-
       - name: Checkout source
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         with:
