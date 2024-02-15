@@ -21,7 +21,12 @@ jobs:
 
     # only executes this job if its a push to main or
     # a labeled pull request from a branch named: changeset-release/main
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.head_ref == 'changeset-release/main')
+    if: >
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && 
+        github.head_ref == 'changeset-release/main' && 
+        (github.event.action == 'labeled' || 
+         github.event.action == 'unlabeled'))
 
     permissions:
       contents: write # to create release (changesets/action)
@@ -30,6 +35,8 @@ jobs:
 
     name: Release
     runs-on: ubuntu-latest
+
+    environment: ${{github.event.pull_request.base.ref}}
 
     outputs:
       published: ${{ steps.changesets.outputs.published }}
