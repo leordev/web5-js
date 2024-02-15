@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    types: [labeled, unlabeled]
+    branches:
+      - main
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -69,7 +73,7 @@ jobs:
         id: changesets
         with:
           publish: npx changeset publish
-          version: npx changeset version ${{ steps.apirelease.outputs.ignore_release_args }}
+          version: npx changeset version ${{ steps.apirelease.outputs.ignore_release_args }} && npm i --package-lock-only
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
