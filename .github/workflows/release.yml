@@ -83,8 +83,8 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           git checkout main
-          npm changeset version --snapshot next
-          npm changeset publish --no-git-tag --tag next
+          npx changeset version --snapshot next
+          npx changeset publish --no-git-tag --tag next
 
   publish-docs:
     needs: release
