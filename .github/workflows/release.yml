@@ -27,31 +27,25 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
-        with:
-          submodules: "true"
-
-      - name: install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        uses: actions/setup-node@5ef044f9d09786428e6e895be6be17937becee3a #v4.0.0
         with:
-          node-version: 20
+          node-version: 18
           registry-url: https://registry.npmjs.org/
+          cache: "npm"
 
       - name: Verify NPM token is authenticated with NPMjs.com
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm whoami
+        run: npm whoami
 
       - name: Install dependencies
-        run: pnpm install
+        run: npm ci
 
       - name: Build all workspace packages
-        run: pnpm build
+        run: npm run build
 
       - name: Check @web5/api release
         id: apirelease
@@ -71,8 +65,8 @@ jobs:
         uses: changesets/action@v1
         id: changesets
         with:
-          publish: pnpm changeset publish
-          version: pnpm changeset version ${{ steps.apirelease.outputs.ignore_release_args }}
+          publish: npm changeset publish
+          version: npm changeset version ${{ steps.apirelease.outputs.ignore_release_args }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -86,8 +80,8 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           git checkout main
-          pnpm changeset version --snapshot next
-          pnpm changeset publish --no-git-tag --tag next
+          npm changeset version --snapshot next
+          npm changeset publish --no-git-tag --tag next
 
   publish-docs:
     needs: release
