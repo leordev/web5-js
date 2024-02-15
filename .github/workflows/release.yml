@@ -18,6 +18,11 @@ jobs:
   release:
     # prevents this action from running on forks
     # if: github.repository == 'TBD54566975/tbdex-js'
+
+    # only executes this job if its a push to main or
+    # a labeled pull request from a branch named: changeset-release/main
+    if: (github.event_name == 'push' && github.ref =='refs/heads/main') || (github.event_name == 'pull_request' && github.event.label.name == 'api-release' && github.base_ref == 'changeset-release/main')
+
     permissions:
       contents: write # to create release (changesets/action)
       pull-requests: write # to create pull request (changesets/action)
@@ -32,6 +37,8 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          ref: main
 
       - name: Set up Node.js
         uses: actions/setup-node@5ef044f9d09786428e6e895be6be17937becee3a #v4.0.0
@@ -45,23 +52,6 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm whoami
 
-      - name: Check @web5/api release
-        id: apirelease
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          api_release_pr=$(gh pr list \
-                           --base 'main' \
-                           --head 'changeset-release/main' \
-                           --json title,labels,number \
-                           --jq '[.[] | select(.labels[]?.name == "api-release")] | first | .number')
-          if [[ -z "$api_release_pr" ]]; then
-            echo "This is a release without the Web5 API"
-            echo "::set-output name=ignore_release_args::--ignore @leordev-web5/api"
-          else
-            echo "Web5 API Release DETECTED"
-          fi
-
       - name: Install dependencies
         run: npm ci
 
@@ -73,7 +63,7 @@ jobs:
         id: changesets
         with:
           publish: npx changeset publish
-          version: npx changeset version ${{ steps.apirelease.outputs.ignore_release_args }} && npm i --package-lock-only
+          version: scripts/changesets-version.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
