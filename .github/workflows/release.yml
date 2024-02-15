@@ -41,12 +41,6 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm whoami
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build all workspace packages
-        run: npm run build
-
       - name: Check @web5/api release
         id: apirelease
         env:
@@ -58,11 +52,20 @@ jobs:
                            --json title,labels,number \
                            --jq '[.[] | select(.labels[]?.name == "api-release")] | first | .number')
           if [[ -z "$api_release_pr" ]]; then
-              echo "ignore_release_args='--ignore @leordev-web5/api'" >> "$GITHUB_OUTPUT"
+            echo "This is a release without the Web5 API"
+            echo "::set-output name=ignore_release_args::--ignore @leordev-web5/api"
+          else
+            echo "Web5 API Release DETECTED"
           fi
 
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build all workspace packages
+        run: npm run build
+
       - name: Create Release Pull Request or Publish to npm
-        uses: changesets/action@v1
+        uses: changesets/action@f13b1baaa620fde937751f5d2c3572b9da32af23 # v1.4.5
         id: changesets
         with:
           publish: npm changeset publish
