@@ -1,5 +1,11 @@
 # @leordev-web5/common
 
+## 0.2.6
+
+### Patch Changes
+
+- [`7deb425`](https://github.com/leordev/web5-js/commit/7deb42527687a066d81458e91c8e81bf7f2d0a66) Thanks [@leordev](https://github.com/leordev)! - Add provenance
+
 ## 0.2.5
 
 ### Patch Changes
